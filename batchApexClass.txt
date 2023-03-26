@@ -1,0 +1,36 @@
+Select Id, Name, RecordTypeId, Account_Status__c, Account_Verified__c from Account where RecordTypeId = '0127F000000JxR5QAK'
+
+Select Id, Name, RecordTypeId, Account_Status__c, Account_Verified__c from Account where RecordTypeId = '0127F000000JxR5QAK' AND Account_Verified__c = false
+
+Select Id, Name, RecordTypeId, Account_Status__c, Account_Verified__c from Account where RecordTypeId = '0127F000000JxR5QAK' AND Account_Verified__c = false AND Account_Status__c = 'Approved'
+
+
+code
+==========
+
+global class BatchAccountVerifiedUpdate implements Database.Batchable<sObject>{
+    global Database.QueryLocator start(Database.BatchableContext bc){
+     // get the Account record
+     //String recordTypeAccount = '0127F000000JxR5QAK';
+     String recordTypeAccount = Schema.SObjectType.Account.getRecordTypeInfosByName().get('Sales Record Type').getRecordTypeId();
+     String accountVerfied = 'Approved';
+     String query = 'Select Id, Name, RecordTypeId, Account_Status__c, Account_Verified__c from Account where RecordTypeId = :recordTypeAccount AND Account_Verified__c = false AND Account_Status__c = :accountVerfied';
+     System.debug('query '+query);
+     return Database.getQueryLocator(query);
+    }
+    global void execute(Database.BatchableContext bc, List<Account> accList){
+      //process the Account Record
+        for(Account acc : accList){
+            acc.Account_Verified__c = true;
+        } 
+        try{
+           update accList;
+           System.debug('accList '+accList);
+        }catch(Exception ex){
+           System.debug('Exception '+ex.getMessage()); 
+        }
+    }
+    global void finish(Database.BatchableContext bc){
+       //for post processing 
+    }
+}
