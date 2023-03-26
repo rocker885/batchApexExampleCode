@@ -15,6 +15,9 @@ global class BatchAccountVerifiedUpdate implements Database.Batchable<sObject>{
      String recordTypeAccount = Schema.SObjectType.Account.getRecordTypeInfosByName().get('Sales Record Type').getRecordTypeId();
      String accountVerfied = 'Approved';
      String query = 'Select Id, Name, RecordTypeId, Account_Status__c, Account_Verified__c from Account where RecordTypeId = :recordTypeAccount AND Account_Verified__c = false AND Account_Status__c = :accountVerfied';
+     //Escape quote stringusing blakslash \
+     //String query = 'Select Id, Name, RecordTypeId, Account_Status__c, Account_Verified__c from Account where RecordTypeId = :recordTypeAccount AND Account_Verified__c = false AND Account_Status__c = \'Approved\'';
+
      System.debug('query '+query);
      return Database.getQueryLocator(query);
     }
