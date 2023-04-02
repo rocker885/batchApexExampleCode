@@ -1,8 +1,25 @@
+Batch class + Schedule a batch
+=======================================
+
+
 Select Id, Name, RecordTypeId, Account_Status__c, Account_Verified__c from Account where RecordTypeId = '0127F000000JxR5QAK'
+-----------------------------------------------------------------------------------
 
 Select Id, Name, RecordTypeId, Account_Status__c, Account_Verified__c from Account where RecordTypeId = '0127F000000JxR5QAK' AND Account_Verified__c = false
+----------------------------------------------------------------------------
 
 Select Id, Name, RecordTypeId, Account_Status__c, Account_Verified__c from Account where RecordTypeId = '0127F000000JxR5QAK' AND Account_Verified__c = false AND Account_Status__c = 'Approved'
+-------------------------------------------------------------------------------------------
+
+SELECT Id, CronJobDetail.Id, CronJobDetail.Name, CronJobDetail.JobType FROM CronTrigger
+------------------------------------------------------------------------------------------
+
+Using CRON Expression in Salesforce
+---------------------------------------
+TestSchedulableClass testobj = new TestSchedulableClass();
+String cronexpression = ‘0 0 0 ? * * *’;
+System.schedule(‘Testing’, cronexpression, testobj);
+---------------------------------------------------------
 
 
 code
@@ -37,3 +54,58 @@ global class BatchAccountVerifiedUpdate implements Database.Batchable<sObject>{
        //for post processing 
     }
 }
+
+
+===================================
+
+code 2
+------------
+
+global with sharing class TaxAccountDescriptionUpdate implements Database.batchable<sObject>,Database.Stateful{
+    public TaxAccountDescriptionUpdate() {
+     //default constructor
+    }
+    global Database.QueryLocator start(Database.BatchableContext BC) {
+        // collect the batches of records or objects to be passed to execute
+        
+        String query = 'SELECT Id,Name,Description FROM Account';
+        return Database.getQueryLocator(query);
+    }
+    global void execute(Database.BatchableContext BC, List<Account> accList) {
+       
+        // process each batch of records
+        for(Account a : accList){
+            if(a.Description == 'NA'){
+                a.Description = 'Please Update Account in 1 week other it will deactivate';
+            }
+        }
+        try{
+            update accList;
+            //System.debug('accList in try block '+accList)
+        }catch(Exception ex){
+            System.debug('in catch block '+ex.getMessage());
+        }
+    }
+    global void finish(Database.BatchableContext BC) {
+        // execute any post-processing operations
+  }
+}
+======================================================
+
+Schudale the batch class
+
+code:
+
+global with sharing class ScheduleTaxAccountDescriptionUpdate implements Schedulable{
+    public ScheduleTaxAccountDescriptionUpdate() {
+
+    }
+    global void execute(SchedulableContext sc){
+        TaxAccountDescriptionUpdate bee= new TaxAccountDescriptionUpdate();
+        Database.executeBatch(bee,10);
+    }
+}
+
+======================================================================================
+
+
